@@ -22,6 +22,7 @@ class Excel
 
     private $fileName;
     private $outputFormat;
+    private $columnsAutoSizingEnabled = true;
 
     /**
      * @var Sheet[]
@@ -78,6 +79,21 @@ class Excel
         return $this;
     }
 
+    /**
+     * Always `false` for the CSV output.
+     */
+    public function isColumnsAutoSizingEnabled(): bool
+    {
+        return $this->columnsAutoSizingEnabled && $this->outputFormat !== self::OUTPUT_CSV;
+    }
+
+    public function setColumnsAutoSizingEnabled(bool $columnsAutoSizingEnabled): Excel
+    {
+        $this->columnsAutoSizingEnabled = $columnsAutoSizingEnabled;
+
+        return $this;
+    }
+
     public function addSheet(string $name): Sheet
     {
         $sheet = new Sheet($name);
@@ -126,6 +142,8 @@ class Excel
             $spreadsheet->addSheet($sheet->getWorksheet($data[$sheet->getName()] ?? []), $index++);
         }
 
+        $this->autoSizeSpreadsheetColumns($spreadsheet);
+
         return $spreadsheet;
     }
 
@@ -156,5 +174,20 @@ class Excel
         $class = self::OUTPUT_WRITERS[$this->getOutputFormat()];
 
         return new $class($spreadsheet);
+    }
+
+    private function autoSizeSpreadsheetColumns(Spreadsheet $spreadsheet): void
+    {
+        foreach ($spreadsheet->getWorksheetIterator() as $worksheet) {
+            $spreadsheet->setActiveSheetIndex($spreadsheet->getIndex($worksheet));
+
+            $sheet = $spreadsheet->getActiveSheet();
+            $cellIterator = $sheet->getRowIterator()->current()->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(true);
+
+            foreach ($cellIterator as $cell) {
+                $sheet->getColumnDimension($cell->getColumn())->setAutoSize($this->isColumnsAutoSizingEnabled());
+            }
+        }
     }
 }

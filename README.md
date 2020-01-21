@@ -58,6 +58,7 @@ $data = [
 
 // Create the new Excel object
 $excel = new \SecIT\SimpleExcelExport\Excel('test', \SecIT\SimpleExcelExport\Excel::OUTPUT_XLSX);
+$excel->setColumnsAutoSizingEnabled(true);
 
 // Simple array example
 $excel->addSheet('Simple array example')
