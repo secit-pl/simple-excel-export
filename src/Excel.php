@@ -147,9 +147,10 @@ class Excel
         return $spreadsheet;
     }
 
-    public function getResponse(array $data): Response
+    public function getResponse(array $data, bool $preCalculateFormulas = true): Response
     {
         $writer = $this->getOutputWriter($this->getSpreadsheet($data));
+        $writer->setPreCalculateFormulas($preCalculateFormulas);
 
         $response = new StreamedResponse(
             static function () use ($writer) {
