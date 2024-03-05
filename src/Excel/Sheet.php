@@ -115,7 +115,7 @@ class Sheet
             return $rowData;
         }, $data);
 
-        $worksheet->fromArray(array_merge($headers, $dataRows));
+        $worksheet->fromArray(array_merge($headers, $dataRows), null, 'A1', true);
 
         return $worksheet;
     }
