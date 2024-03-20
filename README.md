@@ -19,8 +19,41 @@ $ composer require secit-pl/simple-excel-export
 
 ## Usage
 
+### Basic example
+
 ```php
 <?php
+
+use SecIT\SimpleExcelExport\Excel;
+
+// example data
+$data = [
+    'Simple array example' => [
+        ['col1' => 123, 'col2' => 321],
+        ['col1' => 234, 'col2' => 345],
+    ],
+];
+
+$excel = new Excel('test', Excel::OUTPUT_XLSX);
+$excel->setColumnsAutoSizingEnabled(true);
+
+$excel->addSheet('Simple array example')
+    ->setColumn('Column 1', '[col1]') // use Symfony property access component notation or callback
+    ->setColumn('Column 2', '[col2]');
+
+// get response (Symfony compatible) 
+$response = $excel->getResponse($data)
+
+// and sent it to the browser
+$response->send();
+```
+
+### Advanced example
+
+```php
+<?php
+
+use SecIT\SimpleExcelExport\Excel;
 
 // Excel data
 // data class used in this example
@@ -57,7 +90,7 @@ $data = [
 ];
 
 // Create the new Excel object
-$excel = new \SecIT\SimpleExcelExport\Excel('test', \SecIT\SimpleExcelExport\Excel::OUTPUT_XLSX);
+$excel = new Excel('test', Excel::OUTPUT_XLSX);
 $excel->setColumnsAutoSizingEnabled(true);
 
 // Simple array example
@@ -68,10 +101,10 @@ $excel->addSheet('Simple array example')
 // Filters example
 $excel->addSheet('Filters example')
     ->setColumn('Column 3', '[col3]', [
-        new SecIT\SimpleExcelExport\Excel\Filter\PregReplaceFilter('/sad/', 'happy'),
+        new Excel\Filter\PregReplaceFilter('/sad/', 'happy'),
     ])
     ->setColumn('Column 4', '[col4]', [
-        new SecIT\SimpleExcelExport\Excel\Filter\DateTimeFilter('d.m.Y'),
+        new Excel\Filter\DateTimeFilter('d.m.Y'),
     ]);
 
 // Objects example
@@ -92,5 +125,4 @@ $excel->addSheet('Callback example')
 // Get response and sent it to the browser
 $excel->getResponse($data)
     ->send();
-
 ```
