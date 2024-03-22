@@ -19,6 +19,8 @@ class Sheet
 
     private $propertyAccessor;
 
+    private $includeHeader = true;
+
     public function __construct(string $name)
     {
         $this->name = $name;
@@ -98,6 +100,13 @@ class Sheet
         return $this;
     }
 
+    public function setIncludeHeader($includeHeader = true): self
+    {
+        $this->includeHeader = $includeHeader;
+
+        return $this;
+    }
+
     /**
      * @internal
      */
@@ -105,7 +114,12 @@ class Sheet
     {
         $worksheet = new Worksheet(null, $this->getName());
 
-        $headers = [array_keys($this->columns)];
+        if ($this->includeHeader) {
+            $headers = [array_keys($this->columns)];
+        } else {
+            $headers = [];
+        }
+
         $dataRows = array_map(function ($row) {
             $rowData = [];
             foreach ($this->columns as $name => $column) {
