@@ -147,6 +147,16 @@ class Excel
         return $spreadsheet;
     }
 
+    public function getFile(string $filePath, array $data, bool $preCalculateFormulas = true): \SplFileInfo
+    {
+        $writer = $this->getOutputWriter($this->getSpreadsheet($data));
+        $writer->setPreCalculateFormulas($preCalculateFormulas);
+
+        $writer->save($filePath);
+
+        return new \SplFileInfo($filePath);
+    }
+
     public function getResponse(array $data, bool $preCalculateFormulas = true): Response
     {
         $writer = $this->getOutputWriter($this->getSpreadsheet($data));

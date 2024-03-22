@@ -21,6 +21,8 @@ $ composer require secit-pl/simple-excel-export
 
 ### Basic example
 
+#### Send Excel file as response to user
+
 ```php
 <?php
 
@@ -46,6 +48,32 @@ $response = $excel->getResponse($data)
 
 // and sent it to the browser
 $response->send();
+```
+
+#### Create Excel file 
+
+```php
+<?php
+
+use SecIT\SimpleExcelExport\Excel;
+
+// example data
+$data = [
+    'Simple array example' => [
+        ['col1' => 123, 'col2' => 321],
+        ['col1' => 234, 'col2' => 345],
+    ],
+];
+
+$excel = new Excel('test', Excel::OUTPUT_XLSX);
+$excel->setColumnsAutoSizingEnabled(true);
+
+$excel->addSheet('Simple array example')
+    ->setColumn('Column 1', '[col1]') // use Symfony property access component notation or callback
+    ->setColumn('Column 2', '[col2]');
+
+// get file 
+$splFileObject = $excel->getFile('/path/to/the/file.xlsx', $data);
 ```
 
 ### Advanced example
