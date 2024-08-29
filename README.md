@@ -8,7 +8,13 @@ Key features:
  - Values can be accessed by the [PropertyAccess Component](https://symfony.com/doc/current/components/property_access.html) or [PHP callback](https://www.php.net/manual/en/language.types.callable.php).
  - XLS, XLSX and CSV support (by passing the second argument while creating a new \SecIT\SimpleExcelExport\Excel obejct)
  - Symfony 4+ compatible (getResponse() returns valid [Symfony Response](https://symfony.com/doc/current/components/http_foundation.html#response))
- 
+
+## Security warning
+
+> [!CAUTION]
+> The PHPOffice/PhpSpreadsheet library used by this bundle has a serious security vulnerability in versions <2.2.1. Please update this bundle as soon as possible to version 2.0.0 or grater, which allows to install only the secured version of PHPOffice/PhpSpreadsheet.
+> More details can be found here https://github.com/PHPOffice/PhpSpreadsheet/security/advisories/GHSA-ghg6-32f9-2jp7
+
 ## Installation
 
 From the command line run
