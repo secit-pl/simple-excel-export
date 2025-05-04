@@ -50,7 +50,7 @@ $excel->addSheet('Simple array example')
     ->setColumn('Column 2', '[col2]');
 
 // get response (Symfony compatible) 
-$response = $excel->getResponse($data)
+$response = $excel->getResponse($data);
 
 // and sent it to the browser
 $response->send();
@@ -80,6 +80,34 @@ $excel->addSheet('Simple array example')
 
 // get file 
 $splFileObject = $excel->getFile('/path/to/the/file.xlsx', $data);
+```
+
+### You can also force column data type
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use SecIT\SimpleExcelExport\Excel;
+
+// example data
+$data = [
+    'Simple array example' => [
+        ['col1' => 123, 'col2' => '=ASD(123)'],
+        ['col1' => 234, 'col2' => 3453],
+    ],
+];
+
+$excel = new Excel('test', Excel::OUTPUT_XLSX);
+$excel->setColumnsAutoSizingEnabled(true);
+
+$excel->addSheet('Simple array example')
+    ->setColumn('Column 1', '[col1]')
+    ->setColumn('Column 2', '[col2]', null, DataType::TYPE_STRING); // this column from now will be always string and all formulas in it will not be executed
+
+// get file 
+$splFileObject = $excel->getFile('/path/to/the/file.xlsx', $data);
+
 ```
 
 ### Advanced example

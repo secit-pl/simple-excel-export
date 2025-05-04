@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SecIT\SimpleExcelExport\Excel;
 
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use SecIT\SimpleExcelExport\Excel\Filter\ColumnFilterInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -38,7 +40,7 @@ class Sheet
      *
      * @return Sheet
      */
-    public function setColumn(string $name, $getter, $filters = null): self
+    public function setColumn(string $name, $getter, $filters = null, ?string $dataType = null): self
     {
         if (!is_string($getter) && !is_callable($getter)) {
             throw new \InvalidArgumentException(sprintf(
@@ -65,15 +67,24 @@ class Sheet
             $filters = [];
         }
 
-        $this->columns[$name] = new class($getter, $filters) {
+        if (null !== $dataType && !in_array($dataType, $this->getAllowedDataTypes(), true)) {
+            throw new \InvalidArgumentException(sprintf(
+                'Invalid data type. Expected null or one of %s::TYPE_* given.',
+                DataType::class
+            ));
+        }
+
+        $this->columns[$name] = new class($getter, $filters, $dataType) {
             private $getter;
             private $filters;
+            private $dataType;
             private $propertyAccessor;
 
-            public function __construct($getter, array $filters)
+            public function __construct($getter, array $filters, $dataType)
             {
                 $this->getter = $getter;
                 $this->filters = $filters;
+                $this->dataType = $dataType;
                 $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
             }
 
@@ -95,6 +106,11 @@ class Sheet
 
                 return $value;
             }
+
+            public function getDataType()
+            {
+                return $this->dataType;
+            }
         };
 
         return $this;
@@ -114,23 +130,55 @@ class Sheet
     {
         $worksheet = new Worksheet(null, $this->getName());
 
-        if ($this->includeHeader) {
-            $headers = [array_keys($this->columns)];
-        } else {
-            $headers = [];
-        }
+        [$columnIndex, $rowIndex] = Coordinate::coordinateFromString('A1');
 
-        $dataRows = array_map(function ($row) {
-            $rowData = [];
-            foreach ($this->columns as $name => $column) {
-                $rowData[] = $column->get($row);
+        if ($this->includeHeader) {
+            foreach (array_keys($this->columns) as $name) {
+                if (null !== $name) {
+                    $worksheet->getCell($columnIndex.$rowIndex)
+                        ->setValue($name);
+                }
+
+                ++$columnIndex;
             }
 
-            return $rowData;
-        }, $data);
+            ++$rowIndex;
+            $columnIndex = 'A';
+        }
 
-        $worksheet->fromArray(array_merge($headers, $dataRows), null, 'A1', true);
+        foreach ($data as $rowData) {
+            foreach ($this->columns as $column) {
+                $cellData = $column->get($rowData);
+                $cellDataType = $column->getDataType();
+
+                if (null === $cellDataType) {
+                    $worksheet->setCellValue($columnIndex.$rowIndex, $cellData);
+                } else {
+                    $worksheet->setCellValueExplicit($columnIndex.$rowIndex, $cellData, $cellDataType);
+                }
+
+                ++$columnIndex;
+            }
+
+            ++$rowIndex;
+            $columnIndex = 'A';
+        }
 
         return $worksheet;
+    }
+
+    private function getAllowedDataTypes(): array
+    {
+        $types = [null];
+        $prefix = 'TYPE_';
+
+        $reflectionClass = new \ReflectionClass(DataType::class);
+        foreach ($reflectionClass->getConstants() as $name => $value) {
+            if (strpos($name, $prefix) === 0) {
+                $types[] = $value;
+            }
+        }
+
+        return $types;
     }
 }
